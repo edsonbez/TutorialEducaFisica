@@ -3,118 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Educação Física</title>
-    <!-- Inclui o Tailwind CSS -->
+    <title>Chatbot de Educação Física</title>
+    <!-- Inclui o Tailwind CSS para estilização -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f0f4f8;
         }
-        #message-box {
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
+        .chat-container {
+            max-width: 800px;
         }
-        .animate-fade-in {
-            animation: fadeIn 0.5s ease-in-out;
+        .message {
+            max-width: 75%;
         }
-        .animate-fade-out {
-            animation: fadeOut 0.5s ease-in-out forwards;
+        .message-user {
+            background-color: #4f46e5;
+            color: white;
+            border-radius: 1.5rem 1.5rem 0.5rem 1.5rem;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .message-bot {
+            background-color: #e2e8f0;
+            color: #1a202c;
+            border-radius: 1.5rem 1.5rem 1.5rem 0.5rem;
         }
-        @keyframes fadeOut {
-            from { opacity: 1; transform: translateY(0); }
-            to { opacity: 0; transform: translateY(-20px); }
+        .gemini-gradient {
+            background: linear-gradient(90deg, #ff6b6b, #4f46e5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
-    <div class="container mx-auto p-4 sm:p-8 md:p-12">
-        <!-- Cabeçalho -->
-        <header class="text-center mb-10">
-            <a href="index.html" class="inline-block mb-4">
-                <button class="bg-gray-300 text-gray-700 py-2 px-6 rounded-full shadow-md hover:bg-gray-400 transition duration-300">
-                    &larr; Voltar
-                </button>
-            </a>
-            <h1 class="text-4xl sm:text-5xl font-extrabold text-blue-700">Bem-vindo(a) ao Espaço da Educação Física</h1>
-            <p class="mt-4 text-xl sm:text-2xl font-light text-gray-600">Sua jornada para o conhecimento, movimento e saúde começa aqui.</p>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4 sm:p-6 md:p-8">
+    <div class="chat-container w-full bg-white rounded-3xl shadow-xl flex flex-col h-[90vh] sm:h-[85vh] lg:h-[80vh]">
+        <!-- Cabeçalho do Chat -->
+        <header class="p-6 border-b border-gray-200 flex items-center justify-between rounded-t-3xl bg-white sticky top-0 z-10">
+            <h1 class="text-2xl font-bold gemini-gradient">Assistente de Educação Física</h1>
         </header>
 
-        <!-- Seções de Conteúdo -->
-        <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            <!-- Card de Recursos de Aprendizagem -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center text-center transition-all hover:scale-105 duration-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-blue-500 mb-4" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-                </svg>
-                <h2 class="text-2xl font-semibold text-gray-700 mb-2">Recursos de Aprendizagem</h2>
-                <p class="text-gray-500">Acesse artigos, vídeos e tutoriais para aprofundar seu conhecimento em anatomia, fisiologia e biomecânica.</p>
-                <button class="action-btn mt-4 bg-blue-600 text-white font-medium py-2 px-6 rounded-full hover:bg-blue-700 transition duration-300" data-message="Recursos de Aprendizagem">
-                    Ver Mais
-                </button>
+        <!-- Área de Mensagens -->
+        <main id="chat-messages" class="flex-grow p-6 overflow-y-auto space-y-6">
+            <div class="message message-bot p-4 rounded-3xl self-start drop-shadow-md">
+                <p>Olá! Sou seu assistente de Educação Física. Como posso te ajudar hoje? Pergunte sobre exercícios, nutrição, ou qualquer coisa relacionada a bem-estar.</p>
             </div>
-
-            <!-- Card de Atividades Práticas -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center text-center transition-all hover:scale-105 duration-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-green-500 mb-4" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2z"/>
-                </svg>
-                <h2 class="text-2xl font-semibold text-gray-700 mb-2">Atividades Práticas</h2>
-                <p class="text-gray-500">Encontre planos de aula e ideias para jogos e exercícios que você pode aplicar em suas classes.</p>
-                <button class="action-btn mt-4 bg-green-600 text-white font-medium py-2 px-6 rounded-full hover:bg-green-700 transition duration-300" data-message="Atividades Práticas">
-                    Explorar
-                </button>
-            </div>
-
-            <!-- Card de Novidades -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center text-center transition-all hover:scale-105 duration-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-purple-500 mb-4" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18 10h-2V6h-2V4h2V2h2v2h2v2h-2zm-6 10h-2v-2H8v2H6v-2H4v2H2v-2H0v2h2v2h2v-2h2v2h2v-2h2v2h2v-2h-2zm-4-4h-2v-2h2v2zm4-4h-2v-2h2v2zm4 0h-2v-2h2v2zm0-4h-2v-2h2v2z"/>
-                </svg>
-                <h2 class="text-2xl font-semibold text-gray-700 mb-2">Novidades da Área</h2>
-                <p class="text-gray-500">Mantenha-se atualizado com as últimas pesquisas, tendências e eventos na área de Educação Física.</p>
-                <button class="action-btn mt-4 bg-purple-600 text-white font-medium py-2 px-6 rounded-full hover:bg-purple-700 transition duration-300" data-message="Novidades da Área">
-                    Últimas Notícias
-                </button>
-            </div>
+            <!-- As novas mensagens serão inseridas aqui via JavaScript -->
         </main>
 
-        <!-- Rodapé -->
-        <footer class="mt-12 text-center text-gray-500 text-sm">
-            <p>&copy; 2024 Portal de Educação Física. Todos os direitos reservados.</p>
+        <!-- Área de Entrada de Mensagem -->
+        <footer class="p-6 border-t border-gray-200 rounded-b-3xl bg-white sticky bottom-0 z-10">
+            <form id="chat-form" class="flex items-center space-x-4">
+                <input type="text" id="user-input" placeholder="Pergunte sobre exercícios, nutrição, etc..." class="flex-grow p-4 bg-gray-100 rounded-full border border-gray-300 focus:outline-none focus:border-indigo-500 transition-colors">
+                <button type="submit" id="send-button" class="bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition-colors flex items-center justify-center disabled:bg-gray-400" aria-label="Enviar">
+                    <svg id="send-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                    <div id="loading-spinner" class="hidden w-6 h-6 border-4 border-white border-solid border-t-transparent rounded-full animate-spin"></div>
+                </button>
+            </form>
         </footer>
-
-        <!-- Caixa de Mensagem (Toast) -->
-        <div id="message-box" class="fixed hidden bg-gray-800 text-white px-6 py-3 rounded-lg shadow-xl text-center">
-            <p id="message-text"></p>
-        </div>
     </div>
 
-    <!-- JavaScript para a funcionalidade dos botões -->
     <script>
-        const buttons = document.querySelectorAll('.action-btn');
-        const messageBox = document.getElementById('message-box');
-        const messageText = document.getElementById('message-text');
+        // Configurações do chatbot
+        const form = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        const chatMessages = document.getElementById('chat-messages');
+        const sendButton = document.getElementById('send-button');
+        const sendIcon = document.getElementById('send-icon');
+        const loadingSpinner = document.getElementById('loading-spinner');
 
-        buttons.forEach(button => {
-            button.addEventListener('click', () => {
-                const message = button.dataset.message;
-                messageText.textContent = `Você clicou em "${message}". Esta funcionalidade será adicionada em breve!`;
-                messageBox.classList.remove('hidden', 'animate-fade-out');
-                messageBox.classList.add('animate-fade-in');
+        // Configuração da API. Deixe a chave como uma string vazia.
+        const apiKey = ""; 
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
-                setTimeout(() => {
-                    messageBox.classList.remove('animate-fade-in');
-                    messageBox.classList.add('animate-fade-out');
-                    setTimeout(() => messageBox.classList.add('hidden'), 500);
-                }, 3000);
-            });
+        // Função para adicionar uma mensagem ao chat
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', 'p-4', 'rounded-3xl', 'drop-shadow-md');
+            messageDiv.classList.add(sender === 'user' ? 'message-user' : 'message-bot');
+            messageDiv.classList.add(sender === 'user' ? 'self-end' : 'self-start');
+            messageDiv.innerHTML = `<p>${text}</p>`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Função para simular o estado de "carregando"
+        function setLoading(isLoading) {
+            sendButton.disabled = isLoading;
+            sendIcon.classList.toggle('hidden', isLoading);
+            loadingSpinner.classList.toggle('hidden', !isLoading);
+            userInput.disabled = isLoading;
+        }
+
+        // Função para lidar com o envio da mensagem
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            // Adiciona a mensagem do usuário
+            addMessage(message, 'user');
+            userInput.value = '';
+            setLoading(true);
+
+            // Payload para a API do Gemini
+            const payload = {
+                contents: [{ parts: [{ text: message }] }],
+                systemInstruction: {
+                    parts: [{ text: "Você é um assistente de educação física amigável e informativo. Responda a perguntas sobre exercícios, nutrição, esportes e bem-estar, mantendo uma abordagem de incentivo e segurança." }]
+                },
+            };
+
+            // Chamada à API com retry exponencial
+            const maxRetries = 5;
+            let retries = 0;
+            let responseText = "Desculpe, não consegui obter uma resposta. Por favor, tente novamente mais tarde.";
+
+            while (retries < maxRetries) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    const candidate = result?.candidates?.[0];
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        responseText = candidate.content.parts[0].text;
+                        break;
+                    } else {
+                        throw new Error("Resposta da API em formato inesperado.");
+                    }
+                } catch (error) {
+                    retries++;
+                    await new Promise(res => setTimeout(res, Math.pow(2, retries) * 1000));
+                }
+            }
+
+            // Adiciona a resposta do bot
+            addMessage(responseText, 'bot');
+            setLoading(false);
         });
     </script>
 </body>
