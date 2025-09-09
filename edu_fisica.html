@@ -72,9 +72,50 @@
         const sendIcon = document.getElementById('send-icon');
         const loadingSpinner = document.getElementById('loading-spinner');
 
-        // Configuração da API. Deixe a chave como uma string vazia.
-        const apiKey = ""; 
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        // Esta é a função que faz a chamada para a API.
+        async function fetchGeminiResponse(message) {
+            const systemPrompt = "Você é um assistente de educação física amigável e informativo. Responda a perguntas sobre exercícios, nutrição, esportes e bem-estar, mantendo uma abordagem de incentivo e segurança.";
+            const userQuery = message;
+            const apiKey = "" // A chave da API é fornecida automaticamente no ambiente de execução.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+            };
+
+            const maxRetries = 5;
+            let retries = 0;
+
+            while (retries < maxRetries) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    const candidate = result?.candidates?.[0];
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        return candidate.content.parts[0].text;
+                    } else {
+                        throw new Error("Resposta da API em formato inesperado.");
+                    }
+                } catch (error) {
+                    console.error("Falha ao buscar resposta do Gemini:", error);
+                    retries++;
+                    await new Promise(res => setTimeout(res, Math.pow(2, retries) * 1000));
+                }
+            }
+            return "Desculpe, não consegui obter uma resposta. Por favor, tente novamente mais tarde.";
+        }
 
         // Função para adicionar uma mensagem ao chat
         function addMessage(text, sender) {
@@ -106,47 +147,11 @@
             userInput.value = '';
             setLoading(true);
 
-            // Payload para a API do Gemini
-            const payload = {
-                contents: [{ parts: [{ text: message }] }],
-                systemInstruction: {
-                    parts: [{ text: "Você é um assistente de educação física amigável e informativo. Responda a perguntas sobre exercícios, nutrição, esportes e bem-estar, mantendo uma abordagem de incentivo e segurança." }]
-                },
-            };
-
-            // Chamada à API com retry exponencial
-            const maxRetries = 5;
-            let retries = 0;
-            let responseText = "Desculpe, não consegui obter uma resposta. Por favor, tente novamente mais tarde.";
-
-            while (retries < maxRetries) {
-                try {
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    const result = await response.json();
-                    const candidate = result?.candidates?.[0];
-                    if (candidate && candidate.content?.parts?.[0]?.text) {
-                        responseText = candidate.content.parts[0].text;
-                        break;
-                    } else {
-                        throw new Error("Resposta da API em formato inesperado.");
-                    }
-                } catch (error) {
-                    retries++;
-                    await new Promise(res => setTimeout(res, Math.pow(2, retries) * 1000));
-                }
-            }
+            // Obtém a resposta do Gemini
+            const botResponse = await fetchGeminiResponse(message);
 
             // Adiciona a resposta do bot
-            addMessage(responseText, 'bot');
+            addMessage(botResponse, 'bot');
             setLoading(false);
         });
     </script>
