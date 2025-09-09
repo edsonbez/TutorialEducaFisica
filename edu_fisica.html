@@ -72,50 +72,8 @@
         const sendIcon = document.getElementById('send-icon');
         const loadingSpinner = document.getElementById('loading-spinner');
 
-        // Esta é a função que faz a chamada para a API.
-        async function fetchGeminiResponse(message) {
-            const systemPrompt = "Você é um assistente de educação física amigável e informativo. Responda a perguntas sobre exercícios, nutrição, esportes e bem-estar, mantendo uma abordagem de incentivo e segurança.";
-            const userQuery = message;
-            const apiKey = "" // A chave da API é fornecida automaticamente no ambiente de execução.
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
-            const payload = {
-                contents: [{ parts: [{ text: userQuery }] }],
-                systemInstruction: {
-                    parts: [{ text: systemPrompt }]
-                },
-            };
-
-            const maxRetries = 5;
-            let retries = 0;
-
-            while (retries < maxRetries) {
-                try {
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    const result = await response.json();
-                    const candidate = result?.candidates?.[0];
-                    if (candidate && candidate.content?.parts?.[0]?.text) {
-                        return candidate.content.parts[0].text;
-                    } else {
-                        throw new Error("Resposta da API em formato inesperado.");
-                    }
-                } catch (error) {
-                    console.error("Falha ao buscar resposta do Gemini:", error);
-                    retries++;
-                    await new Promise(res => setTimeout(res, Math.pow(2, retries) * 1000));
-                }
-            }
-            return "Desculpe, não consegui obter uma resposta. Por favor, tente novamente mais tarde.";
-        }
+        // URL do seu novo proxy. Altere a URL para o endereço onde você hospedou o seu `api-proxy.js`.
+        const PROXY_URL = 'http://localhost:3000/api-proxy.js'; // Exemplo, você deve hospedar este arquivo em um local que permita chamadas.
 
         // Função para adicionar uma mensagem ao chat
         function addMessage(text, sender) {
@@ -147,12 +105,29 @@
             userInput.value = '';
             setLoading(true);
 
-            // Obtém a resposta do Gemini
-            const botResponse = await fetchGeminiResponse(message);
+            // Chamada à API de proxy
+            try {
+                const response = await fetch(PROXY_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
 
-            // Adiciona a resposta do bot
-            addMessage(botResponse, 'bot');
-            setLoading(false);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                const botResponse = result.response;
+
+                // Adiciona a resposta do bot
+                addMessage(botResponse, 'bot');
+            } catch (error) {
+                console.error("Falha ao buscar resposta do proxy:", error);
+                addMessage("Desculpe, não consegui obter uma resposta. Por favor, tente novamente mais tarde.", 'bot');
+            } finally {
+                setLoading(false);
+            }
         });
     </script>
 </body>
