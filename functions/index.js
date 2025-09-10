@@ -21,7 +21,8 @@ exports.apiProxy = functions.https.onRequest(async (req, res) => {
     }
 
     // Get the API key from Firebase environment configuration.
-    const API_KEY = functions.config().gemini.key;
+    // NOTE: This now uses `process.env` which is the new standard
+    const API_KEY = process.env.GEMINI_KEY;
     const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + API_KEY;
 
     try {

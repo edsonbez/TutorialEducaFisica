@@ -3,183 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assistente de Educação Física</title>
+    <title>Gerar Texto com Gemini</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-        .chat-container {
-            width: 100%;
-            max-width: 768px;
-            height: 90vh;
-            background-color: white;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .chat-header {
-            background-color: #1e293b;
-            color: white;
-            padding: 1rem;
-            text-align: center;
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-        .chat-messages {
-            flex: 1;
-            padding: 1.5rem;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        .message {
-            max-width: 80%;
-            padding: 0.75rem 1rem;
-            border-radius: 1.25rem;
-            word-wrap: break-word;
-        }
-        .user-message {
-            background-color: #4f46e5;
-            color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 0.25rem;
-        }
-        .bot-message {
-            background-color: #e5e7eb;
-            color: #1f2937;
-            align-self: flex-start;
-            border-bottom-left-radius: 0.25rem;
-        }
-        .message-box {
-            display: flex;
-            padding: 1rem;
-            border-top: 1px solid #e5e7eb;
-            background-color: #f9fafb;
-        }
-        .message-box input {
-            flex: 1;
-            border: 1px solid #d1d5db;
-            border-radius: 1.5rem;
-            padding: 0.75rem 1.25rem;
-            outline: none;
-            transition: all 0.2s;
-        }
-        .message-box input:focus {
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
-        }
-        .message-box button {
-            background-color: #4f46e5;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 1.5rem;
-            margin-left: 0.75rem;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        .message-box button:hover {
-            background-color: #4338ca;
-        }
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid white;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center">
+<body class="flex items-center justify-center min-h-screen p-4">
 
-    <div class="chat-container">
-        <header class="chat-header">
-            Assistente de Educação Física
-        </header>
-        <div class="chat-messages" id="chat-messages">
-            <div class="message bot-message">Olá! Sou seu assistente de Educação Física. Como posso te ajudar hoje? Pergunte sobre exercícios, nutrição, ou qualquer coisa relacionada a bem-estar.</div>
+    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-lg w-full text-center space-y-6">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-2">Chamada da Função Gemini</h1>
+        <p class="text-gray-500">
+            Este é um aplicativo de exemplo que chama sua função do Firebase implantada.
+        </p>
+        
+        <div id="status-container" class="space-y-4 text-left">
+            <p id="user-status" class="text-gray-600 font-medium">Status de autenticação: <span class="text-blue-600">Carregando...</span></p>
+            <p id="user-id" class="text-sm text-gray-400 break-all">ID de usuário: <span class="text-gray-500">Não disponível</span></p>
         </div>
-        <div class="message-box">
-            <input type="text" id="user-input" placeholder="Digite sua mensagem..." />
-            <button id="send-button">
-                Enviar
-            </button>
+
+        <button id="generate-btn" class="w-full py-3 px-6 rounded-xl bg-blue-600 text-white font-semibold shadow-lg hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+            Gerar Texto
+        </button>
+
+        <div id="result-container" class="mt-8 pt-6 border-t border-gray-200">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-2">Resultado da API</h2>
+            <div id="result-text" class="bg-gray-100 p-4 rounded-lg text-gray-700 text-left whitespace-pre-wrap">
+                O resultado aparecerá aqui...
+            </div>
+            <div id="loading-spinner" class="hidden mt-4">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+            </div>
         </div>
     </div>
 
-    <script>
-        const PROXY_URL = '/api/';
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
 
-        const userInput = document.getElementById('user-input');
-        const sendButton = document.getElementById('send-button');
-        const chatMessages = document.getElementById('chat-messages');
+        // Global variables provided by the canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        let isWaitingForResponse = false;
+        let auth, functions;
+        let userId;
 
-        async function sendMessage() {
-            const message = userInput.value.trim();
-            if (message === '' || isWaitingForResponse) return;
+        const userStatusEl = document.getElementById('user-status').querySelector('span');
+        const userIdEl = document.getElementById('user-id').querySelector('span');
+        const generateBtn = document.getElementById('generate-btn');
+        const resultTextEl = document.getElementById('result-text');
+        const loadingSpinner = document.getElementById('loading-spinner');
 
-            isWaitingForResponse = true;
-            appendMessage(message, 'user-message');
-            userInput.value = '';
-
-            const responseElement = appendMessage('...', 'bot-message');
+        // Main setup function on window load
+        window.onload = async () => {
+            if (!firebaseConfig) {
+                console.error("Firebase config is missing. Please ensure it's provided.");
+                userStatusEl.textContent = "Erro de configuração";
+                return;
+            }
 
             try {
-                const response = await fetch(PROXY_URL, {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                functions = getFunctions(app, 'us-central1'); // Replace with your function region
+
+                // Authenticate the user with the custom token
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                userId = auth.currentUser.uid;
+                userStatusEl.textContent = "Autenticado";
+                userStatusEl.className = "text-green-600";
+                userIdEl.textContent = userId;
+                generateBtn.disabled = false;
+            } catch (error) {
+                console.error("Erro ao inicializar Firebase ou autenticar:", error);
+                userStatusEl.textContent = "Falha na autenticação";
+                userStatusEl.className = "text-red-600";
+            }
+        };
+
+        generateBtn.addEventListener('click', async () => {
+            generateBtn.disabled = true;
+            resultTextEl.textContent = '';
+            loadingSpinner.classList.remove('hidden');
+
+            // Replace this URL with the actual URL from your terminal
+            const firebaseFunctionUrl = 'https://us-central1-projeto-api-firebase.cloudfunctions.net/yourFunctionName'; // UPDATE THIS URL
+
+            try {
+                const response = await fetch(firebaseFunctionUrl, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ prompt: message })
+                    body: JSON.stringify({ prompt: 'Diga algo sobre a importância da inteligência artificial.' })
                 });
 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
+                    throw new Error(`Erro HTTP: ${response.status}`);
                 }
 
                 const data = await response.json();
-                
-                responseElement.textContent = data.text;
+                resultTextEl.textContent = data.text || "Resposta vazia.";
 
             } catch (error) {
-                console.error('Error:', error);
-                responseElement.textContent = 'Desculpe, não consegui obter uma resposta. Por favor, tente novamente mais tarde.';
+                console.error("Erro ao chamar a função:", error);
+                resultTextEl.textContent = `Erro: ${error.message}`;
             } finally {
-                isWaitingForResponse = false;
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }
-        }
-
-        function appendMessage(text, className) {
-            const messageElement = document.createElement('div');
-            messageElement.classList.add('message', className, 'rounded-xl', 'p-3', 'shadow-sm', 'transition', 'duration-300');
-            messageElement.textContent = text;
-            chatMessages.appendChild(messageElement);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            return messageElement;
-        }
-
-        sendButton.addEventListener('click', sendMessage);
-        userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
+                loadingSpinner.classList.add('hidden');
+                generateBtn.disabled = false;
             }
         });
     </script>
