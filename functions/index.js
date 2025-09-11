@@ -1,59 +1,59 @@
-const functions = require('firebase-functions');
+const { onRequest } = require('firebase-functions/v2/https');
+const { defineSecret } = require('firebase-functions/v2/secrets');
 const fetch = require('node-fetch');
 
-// The `apiProxy` function handles incoming HTTP requests.
-exports.apiProxy = functions.https.onRequest(async (req, res) => {
-    // Set CORS headers to allow requests from any origin.
+// The secret name must match the name you set in the Firebase CLI
+const geminiKey = defineSecret('GEMINI_KEY');
+
+exports.generateText = onRequest(
+  { secrets: [geminiKey] },
+  async (req, res) => {
+    // Set CORS headers
     res.set('Access-Control-Allow-Origin', '*');
     res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.set('Access-Control-Allow-Headers', 'Content-Type');
 
-    // Handle preflight requests.
+    // Handle preflight requests
     if (req.method === 'OPTIONS') {
-        res.status(204).send('');
-        return;
+      res.status(204).send('');
+      return;
     }
 
-    // Only allow POST requests.
     if (req.method !== 'POST') {
-        res.status(405).send('Method Not Allowed');
-        return;
+      res.status(405).send('Method Not Allowed');
+      return;
     }
-
-    // Get the API key from Firebase environment configuration.
-    // NOTE: This now uses `process.env` which is the new standard
-    const API_KEY = process.env.GEMINI_KEY;
-    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + API_KEY;
 
     try {
-        // Extract the prompt from the request body.
-        const { prompt } = req.body;
-        const payload = {
-            contents: [{ parts: [{ text: prompt }] }],
-        };
+      const apiKey = geminiKey.value();
+      if (!apiKey) {
+        throw new Error('API key is not configured.');
+      }
 
-        // Make the request to the Gemini API.
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-        });
+      const { prompt } = req.body;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+      const payload = {
+        contents: [{ parts: [{ text: prompt }] }],
+      };
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`API error: ${response.status} - ${errorText}`);
-        }
+      const apiResponse = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-        const data = await response.json();
-        const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!apiResponse.ok) {
+        const errorDetails = await apiResponse.text();
+        throw new Error(`API error: ${apiResponse.status} - ${errorDetails}`);
+      }
 
-        // Send the generated text back to the client.
-        res.status(200).json({ text: textResponse });
+      const data = await apiResponse.json();
+      const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Nenhum texto gerado.';
+      res.status(200).json({ text: generatedText });
 
     } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ error: error.message });
+      console.error('Error:', error);
+      res.status(500).json({ error: error.message });
     }
-});
+  }
+);
