@@ -1,6 +1,6 @@
-const { onRequest } = require('firebase-functions/v2/https');
-const { defineSecret } = require('firebase-functions/v2/secrets');
-const fetch = require('node-fetch');
+import { onRequest } from 'firebase-functions/v2/https';
+import { defineSecret } from 'firebase-functions/v2/secrets';
+import fetch from 'node-fetch';
 
 // The secret name must match the name you set in the Firebase CLI
 const geminiKey = defineSecret('GEMINI_KEY');
